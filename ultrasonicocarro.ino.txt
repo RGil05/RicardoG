@@ -1,0 +1,117 @@
+#include <WiFi.h>
+#include <WebServer.h>
+
+// WiFi
+const char* ssid = "Gilst";
+const char* password = "1605ragg";
+
+WebServer server(80);
+
+// Pines del puente H
+const int ENA = 7;  // PWM Motor 1
+const int IN1 = 6;
+const int IN2 = 5;
+const int ENB = 2;  // PWM Motor 2
+const int IN3 = 4;
+const int IN4 = 3;
+
+// Pines del sensor ultrasónico
+const int triggerPin = 8; 
+const int echoPin = 9;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Pines motores
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  // Pines sensor ultrasónico
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // Conexión WiFi
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\WiFi conectado");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Movimiento
+  server.on("/adelante", []() {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, 200);
+    analogWrite(ENB, 200);
+    server.send(200, "text/plain", "Motores avanzando");
+  });
+
+  server.on("/atras", []() {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 200);
+    analogWrite(ENB, 200);
+    server.send(200, "text/plain", "Motores retrocediendo");
+  });
+
+  server.on("/girar_derecha", []() {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENA, 125);
+    analogWrite(ENB, 125);
+    server.send(200, "text/plain", "Giro a la derecha");
+  });
+
+  server.on("/girar_izquierda", []() {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENA, 125);
+    analogWrite(ENB, 125);
+    server.send(200, "text/plain", "Giro a la izquierda");
+  });
+
+  server.on("/detener", []() {
+    analogWrite(ENA, 0);
+    analogWrite(ENB, 0);
+    server.send(200, "text/plain", "Motores detenidos");
+  });
+
+  // Endpoint para la distancia
+  server.on("/distancia", []() {
+    long duracion, distancia;
+    digitalWrite(triggerPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(triggerPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(triggerPin, LOW);
+
+    duracion = pulseIn(echoPin, HIGH);
+    distancia = duracion * 0.034 / 2;
+
+    String mensaje = "Distancia: " + String(distancia) + " cm";
+    server.send(200, "text/plain", mensaje);
+  });
+
+  server.begin();
+  Serial.println("Servidor iniciado");
+}
+
+void loop() {
+  server.handleClient();
+}
