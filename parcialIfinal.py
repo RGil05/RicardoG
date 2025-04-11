@@ -22,7 +22,7 @@ x_pin.enable_reporting()
 y_pin.enable_reporting()
 
 # Dirección IP de la Raspberry Pi Pico W
-pico_ip = "192.168.94.40"  # Cambia esta IP por la tuya
+pico_ip = "192.168.xxx.xx"  # Cambia esta IP por la tuya
 ultimo_comando = None
 
 # === Lógica de envío de comandos ===
