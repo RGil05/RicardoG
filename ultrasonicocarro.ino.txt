@@ -3,7 +3,8 @@
 
 // WiFi
 const char* ssid = "Gilst";
-const char* password = "1605ragg";
+const char* password = "xxxxxxxx
+";
 
 WebServer server(80);
 
